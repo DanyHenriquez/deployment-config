@@ -1,5 +1,5 @@
 applications:
-  infrastructure:
+  argo-applications:
     namespace: argocd
     project: default
     source:
