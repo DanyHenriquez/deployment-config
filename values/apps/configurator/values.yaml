@@ -48,7 +48,7 @@ resources:
                     -H "X-Api-Key: $api_key" \
                     -H "Content-Type: application/json" \
                     -d "$data")
-                  if [ "$response" -eq 200 ]; then
+                  if [ "$response" -eq 201 ]; then
                     echo "Success: $url"
                     break
                   else
@@ -74,20 +74,20 @@ resources:
               readarr_api_key=$(extract_api_key /mnt/readarr/config.xml)
               prowlarr_api_key=$(extract_api_key /mnt/prowlarr/config.xml)
 
-              # Configure integrations
+              # Configure integrations with correct endpoints and data formats
               echo "Configuring Sonarr to use Prowlarr as an indexer..."
-              retry_curl "$SONARR_URL/api/v1/indexer" \
-                "{\"name\":\"Prowlarr\",\"url\":\"$PROWLARR_URL\",\"apiKey\":\"$prowlarr_api_key\"}" \
+              retry_curl "$SONARR_URL/api/v3/indexer" \
+                "{\"name\":\"Prowlarr\",\"implementation\":\"Prowlarr\",\"configContract\":\"ProwlarrSettings\",\"fields\":[{\"name\":\"baseUrl\",\"value\":\"$PROWLARR_URL\"},{\"name\":\"apiKey\",\"value\":\"$prowlarr_api_key\"}]}" \
                 "$sonarr_api_key"
 
               echo "Configuring Radarr to use Prowlarr as an indexer..."
-              retry_curl "$RADARR_URL/api/v1/indexer" \
-                "{\"name\":\"Prowlarr\",\"url\":\"$PROWLARR_URL\",\"apiKey\":\"$prowlarr_api_key\"}" \
+              retry_curl "$RADARR_URL/api/v3/indexer" \
+                "{\"name\":\"Prowlarr\",\"implementation\":\"Prowlarr\",\"configContract\":\"ProwlarrSettings\",\"fields\":[{\"name\":\"baseUrl\",\"value\":\"$PROWLARR_URL\"},{\"name\":\"apiKey\",\"value\":\"$prowlarr_api_key\"}]}" \
                 "$radarr_api_key"
 
               echo "Configuring Lidarr to use Prowlarr as an indexer..."
               retry_curl "$LIDARR_URL/api/v1/indexer" \
-                "{\"name\":\"Prowlarr\",\"url\":\"$PROWLARR_URL\",\"apiKey\":\"$prowlarr_api_key\"}" \
+                "{\"name\":\"Prowlarr\",\"implementation\":\"Prowlarr\",\"configContract\":\"ProwlarrSettings\",\"fields\":[{\"name\":\"baseUrl\",\"value\":\"$PROWLARR_URL\"},{\"name\":\"apiKey\",\"value\":\"$prowlarr_api_key\"}]}" \
                 "$lidarr_api_key"
 
               echo "Configuring Bazarr with Sonarr API key..."
