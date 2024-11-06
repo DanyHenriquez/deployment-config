@@ -5,7 +5,7 @@ applications:
     source:
       repoURL: https://github.com/DanyHenriquez/deployment-config.git
       targetRevision: main
-      path: applications
+      path: atgo-applications
     destination:
       server: https://kubernetes.default.svc
     syncPolicy:
