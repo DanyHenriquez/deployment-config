@@ -1,6 +1,1 @@
 fullnameOverride: "qbittorrent"
-
-helm:
-  valueFiles:
-  - $values/global/values.yaml
-  - $values/apps/qbittorrent/values.yaml

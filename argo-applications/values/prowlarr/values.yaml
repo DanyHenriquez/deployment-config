@@ -1,6 +1,1 @@
 fullnameOverride: "prowlarr"
-
-helm:
-  valueFiles:
-  - $values/global/values.yaml
-  - $values/apps/prowlarr/values.yaml
