@@ -12,59 +12,93 @@ resources:
           - name: configurator
             image: curlimages/curl:latest
             command: ["/bin/sh", "-c"]
+            env:
+            - name: SONARR_URL
+              value: "http://sonarr-one.media.svc.cluster.local:80"
+            - name: RADARR_URL
+              value: "http://radarr-one.media.svc.cluster.local:80"
+            - name: LIDARR_URL
+              value: "http://lidarr-one.media.svc.cluster.local:80"
+            - name: PROWLARR_URL
+              value: "http://prowlarr-one.media.svc.cluster.local:80"
+            - name: BAZARR_URL
+              value: "http://bazarr-one.media.svc.cluster.local:80"
             args:
             - |
               extract_api_key() {
                 config_file=$1
-                grep -oE '<ApiKey>[^<]+' $config_file | sed 's/<ApiKey>//'
+                grep -oE '<ApiKey>[^<]+' "$config_file" | sed 's/<ApiKey>//'
               }
 
+              wait_for_config() {
+                config_file=$1
+                while [ ! -f "$config_file" ]; do
+                  echo "Waiting for $config_file to be ready..."
+                  sleep 5
+                done
+              }
+
+              retry_curl() {
+                url=$1
+                data=$2
+                api_key=$3
+                retries=5
+                until [ $retries -le 0 ]; do
+                  response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$url" \
+                    -H "X-Api-Key: $api_key" \
+                    -H "Content-Type: application/json" \
+                    -d "$data")
+                  if [ "$response" -eq 200 ]; then
+                    echo "Success: $url"
+                    break
+                  else
+                    echo "Failed to connect ($response). Retrying in 5 seconds..."
+                    retries=$((retries - 1))
+                    sleep 5
+                  fi
+                done
+              }
+
+              # Wait for config files to be ready
+              wait_for_config /mnt/sonarr/config.xml
+              wait_for_config /mnt/radarr/config.xml
+              wait_for_config /mnt/lidarr/config.xml
+              wait_for_config /mnt/readarr/config.xml
+              wait_for_config /mnt/prowlarr/config.xml
+
+              # Extract API keys
               echo "Extracting API keys..."
               sonarr_api_key=$(extract_api_key /mnt/sonarr/config.xml)
-              echo "Sonarr API Key extracted: ${sonarr_api_key}"
               radarr_api_key=$(extract_api_key /mnt/radarr/config.xml)
-              echo "Radarr API Key extracted: ${radarr_api_key}"
               lidarr_api_key=$(extract_api_key /mnt/lidarr/config.xml)
-              echo "Lidarr API Key extracted: ${lidarr_api_key}"
               readarr_api_key=$(extract_api_key /mnt/readarr/config.xml)
-              echo "Readarr API Key extracted: ${readarr_api_key}"
               prowlarr_api_key=$(extract_api_key /mnt/prowlarr/config.xml)
-              echo "Prowlarr API Key extracted: ${prowlarr_api_key}"
 
+              # Configure integrations
               echo "Configuring Sonarr to use Prowlarr as an indexer..."
-              curl -s -o /dev/null -w "%{http_code}" -X POST "http://sonarr-one.media.svc.cluster.local:80/api/v1/indexer" \
-                -H "X-Api-Key: $sonarr_api_key" \
-                -H "Content-Type: application/json" \
-                -d "{\"name\":\"Prowlarr\",\"url\":\"http://prowlarr-one.media.svc.cluster.local:80\",\"apiKey\":\"$prowlarr_api_key\"}"
-              echo "Sonarr configured with Prowlarr."
+              retry_curl "$SONARR_URL/api/v1/indexer" \
+                "{\"name\":\"Prowlarr\",\"url\":\"$PROWLARR_URL\",\"apiKey\":\"$prowlarr_api_key\"}" \
+                "$sonarr_api_key"
 
               echo "Configuring Radarr to use Prowlarr as an indexer..."
-              curl -s -o /dev/null -w "%{http_code}" -X POST "http://radarr-one.media.svc.cluster.local:80/api/v1/indexer" \
-                -H "X-Api-Key: $radarr_api_key" \
-                -H "Content-Type: application/json" \
-                -d "{\"name\":\"Prowlarr\",\"url\":\"http://prowlarr-one.media.svc.cluster.local:80\",\"apiKey\":\"$prowlarr_api_key\"}"
-              echo "Radarr configured with Prowlarr."
+              retry_curl "$RADARR_URL/api/v1/indexer" \
+                "{\"name\":\"Prowlarr\",\"url\":\"$PROWLARR_URL\",\"apiKey\":\"$prowlarr_api_key\"}" \
+                "$radarr_api_key"
 
               echo "Configuring Lidarr to use Prowlarr as an indexer..."
-              curl -s -o /dev/null -w "%{http_code}" -X POST "http://lidarr-one.media.svc.cluster.local:80/api/v1/indexer" \
-                -H "X-Api-Key: $lidarr_api_key" \
-                -H "Content-Type: application/json" \
-                -d "{\"name\":\"Prowlarr\",\"url\":\"http://prowlarr-one.media.svc.cluster.local:80\",\"apiKey\":\"$prowlarr_api_key\"}"
-              echo "Lidarr configured with Prowlarr."
+              retry_curl "$LIDARR_URL/api/v1/indexer" \
+                "{\"name\":\"Prowlarr\",\"url\":\"$PROWLARR_URL\",\"apiKey\":\"$prowlarr_api_key\"}" \
+                "$lidarr_api_key"
 
               echo "Configuring Bazarr with Sonarr API key..."
-              curl -s -o /dev/null -w "%{http_code}" -X POST "http://bazarr-one.media.svc.cluster.local:80/api/sonarr" \
-                -H "X-Api-Key: $sonarr_api_key" \
-                -H "Content-Type: application/json" \
-                -d "{\"url\":\"http://sonarr-one.media.svc.cluster.local:80\",\"apiKey\":\"$sonarr_api_key\"}"
-              echo "Bazarr configured with Sonarr."
+              retry_curl "$BAZARR_URL/api/sonarr" \
+                "{\"url\":\"$SONARR_URL\",\"apiKey\":\"$sonarr_api_key\"}" \
+                "$sonarr_api_key"
 
               echo "Configuring Bazarr with Radarr API key..."
-              curl -s -o /dev/null -w "%{http_code}" -X POST "http://bazarr-one.media.svc.cluster.local:80/api/radarr" \
-                -H "X-Api-Key: $radarr_api_key" \
-                -H "Content-Type: application/json" \
-                -d "{\"url\":\"http://radarr-one.media.svc.cluster.local:80\",\"apiKey\":\"$radarr_api_key\"}"
-              echo "Bazarr configured with Radarr."
+              retry_curl "$BAZARR_URL/api/radarr" \
+                "{\"url\":\"$RADARR_URL\",\"apiKey\":\"$radarr_api_key\"}" \
+                "$radarr_api_key"
 
               echo "Configuration complete."
             volumeMounts:
