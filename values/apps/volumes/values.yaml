@@ -17,7 +17,7 @@ resources:
       accessModes:
       - ReadWriteMany
       hostPath:
-        path: "data"
+        path: "/data"
 
   # PersistentVolumeClaims for media app configurations
   sonarr-config-pvc:
