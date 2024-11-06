@@ -44,7 +44,7 @@ resources:
                     api_key=$3
                     retries=5
                     until [ $retries -le 0 ]; do
-                      response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$url" \
+                      response=$(curl -s -o response.txt -w "%{http_code}" -X POST "$url" \
                         -H "X-Api-Key: $api_key" \
                         -H "Content-Type: application/json" \
                         -d "$data")
@@ -52,12 +52,14 @@ resources:
                         echo "Success: $url"
                         break
                       else
-                        echo "Failed to connect ($response). Retrying in 5 seconds..."
+                        echo "Failed to connect ($response). Response body:"
+                        cat response.txt
                         retries=$((retries - 1))
                         sleep 5
                       fi
                     done
                   }
+
 
                   # Wait for config files to be ready
                   wait_for_config /mnt/sonarr/config.xml
