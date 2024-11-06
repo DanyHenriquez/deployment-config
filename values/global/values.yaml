@@ -1,0 +1,23 @@
+image:
+  tag: "latest"
+
+env:
+- name: TZ
+  value: "Europe/Berlin"
+- name: PUID
+  value: "1000"
+- name: PGID
+  value: "1000"
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "256Mi"
+  limits:
+    cpu: "500m"
+    memory: "1Gi"
+
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1

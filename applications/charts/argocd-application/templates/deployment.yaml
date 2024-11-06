@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ include "argocd-application.fullname" . }}
+  namespace: {{ .Values.argocd.namespace | default "default" }}
+  labels:
+    {{- include "argocd-application.labels" . | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  project: {{ .Values.project | default "default" }}
+  sources:
+  - repoURL: {{ .Values.helm.repoURL }}
+    chart: {{ .Values.helm.chart }}
+    targetRevision: {{ .Values.helm.targetRevision }}
+    helm:
+      ignoreMissingValueFiles: true
+      {{- with .Values.helm.valueFiles }}
+      valueFiles:
+        {{- range . }}
+      - {{ tpl . $ }}
+        {{- end }}
+      {{- end }}
+  - repoURL: {{ .Values.values.repoURL }}
+    targetRevision: {{ .Values.values.targetRevision }}
+    ref: values
+  destination:
+    server: {{ .Values.destination.server | default "https://kubernetes.default.svc" }}
+    namespace: {{ .Values.destination.namespace }}
+  syncPolicy:
+    {{- toYaml .Values.syncPolicy | nindent 4 }}

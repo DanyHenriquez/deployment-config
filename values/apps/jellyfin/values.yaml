@@ -1,0 +1,14 @@
+image:
+  repository: ghcr.io/hotio/jellyfin
+
+containerPort: 8096
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: "jellyfin.local"
+    paths:
+    - path: "/"
+      pathType: "Prefix"
+

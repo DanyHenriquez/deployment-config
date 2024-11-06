@@ -1,0 +1,29 @@
+image:
+  repository: ghcr.io/hotio/nzbget
+
+containerPort: 6789
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: "nzbget.local"
+    paths:
+    - path: "/"
+      pathType: "Prefix"
+
+volumes:
+- name: nzbget-config-volume
+  persistentVolumeClaim:
+    claimName: nzbget-config-pvc
+
+- name: data-volume
+  persistentVolumeClaim:
+    claimName: data-pvc
+
+volumeMounts:
+- name: nzbget-config-volume
+  mountPath: /config
+
+- name: data-volume
+  mountPath: /data

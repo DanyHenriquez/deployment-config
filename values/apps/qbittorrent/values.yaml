@@ -1,0 +1,30 @@
+image:
+  repository: ghcr.io/hotio/qbittorrent
+
+containerPort: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: "qbittorrent.local"
+    paths:
+    - path: "/"
+      pathType: "Prefix"
+
+
+volumes:
+- name: qbittorrent-config-volume
+  persistentVolumeClaim:
+    claimName: qbittorrent-config-pvc
+
+- name: data-volume
+  persistentVolumeClaim:
+    claimName: data-pvc
+
+volumeMounts:
+- name: qbittorrent-config-volume
+  mountPath: /config
+
+- name: data-volume
+  mountPath: /data

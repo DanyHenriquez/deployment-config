@@ -1,0 +1,40 @@
+# Define Helm chart repositories
+repositories:
+  # Add the official Argo Helm repository
+  - name: argo
+    url: https://argoproj.github.io/argo-helm
+
+# Define reusable template configurations
+templates:
+  # Base Argo template that can be inherited by releases
+  argo:
+    # Deploy all Argo-related resources to the argocd namespace
+    namespace: argocd
+    # Set to Warn instead of failing when files are missing
+    missingFileHandler: Warn
+    # Value file hierarchy (from least to most specific)
+    values:
+      # Release-specific base values
+      - values/{{`{{ .Release.Name }}`}}/values.yaml
+
+# Define the actual releases using the template
+releases:
+  # Main ArgoCD installation
+  - name: argocd
+    # Use the argo-cd chart from the Argo repository
+    chart: argo/argo-cd
+    inherit:
+      - template: argo
+    set:
+      - name: git.token
+        value: {{ requiredEnv "GIT_TOKEN" }}
+
+  # ArgoCD Applications configuration
+  - name: argocd-apps
+    # Use the argocd-apps chart from the Argo repository
+    chart: argo/argocd-apps
+    # Ensure the main ArgoCD installation is complete before deploying apps
+    needs:
+      - argocd
+    inherit:
+      - template: argo

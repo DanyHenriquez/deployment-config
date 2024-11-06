@@ -1,0 +1,30 @@
+image:
+  repository: ghcr.io/hotio/lidarr
+
+containerPort: 8686
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: "lidarr.local"
+    paths:
+    - path: "/"
+      pathType: "Prefix"
+
+volumes:
+- name: lidarr-config-volume
+  persistentVolumeClaim:
+    claimName: lidarr-config-pvc
+
+- name: data-volume
+  persistentVolumeClaim:
+    claimName: data-pvc
+
+volumeMounts:
+- name: lidarr-config-volume
+  mountPath: /config
+
+- name: data-volume
+  mountPath: /data
+

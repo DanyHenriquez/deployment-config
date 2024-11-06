@@ -1,0 +1,87 @@
+# Define reusable template configurations
+templates:
+  # ArgoCD application template that can be inherited by releases
+  argocd:
+    # Specify the Kubernetes namespace for ArgoCD
+    namespace: argocd
+    # How to handle missing files (Warn instead of failing)
+    missingFileHandler: Warn
+    # Path to the Helm chart to use
+    chart: charts/argocd-application
+    # Version of the chart to use
+    version: 0.2.0
+    # Value file hierarchy (from least to most specific)
+    values:
+    # Base values for all releases
+    - values/values.yaml
+    # Release-specific base values
+    - values/{{`{{ .Release.Name }}`}}/values.yaml
+
+# Define the actual releases using the template
+releases:
+
+- name: volumes
+  namespace: media
+  inherit:
+  - template: argocd
+
+- name: configurator
+  namespace: media
+  needs:
+  - volumes
+  - lidarr
+  - bazarr
+  - radarr
+  - readarr
+  - sonarr
+  - prowlarr
+  - qbittorrent
+  - nzbget
+  - jellyfin
+  inherit:
+  - template: argocd
+
+- name: bazarr
+  namespace: media
+  inherit:
+  - template: argocd
+
+- name: lidarr
+  namespace: media
+  inherit:
+  - template: argocd
+
+- name: radarr
+  namespace: media
+  inherit:
+  - template: argocd
+
+- name: readarr
+  namespace: media
+  inherit:
+  - template: argocd
+
+- name: sonarr
+  namespace: media
+  inherit:
+  - template: argocd
+
+- name: prowlarr
+  namespace: media
+  inherit:
+  - template: argocd
+
+- name: qbittorrent
+  namespace: media
+  inherit:
+  - template: argocd
+
+- name: nzbget
+  namespace: media
+  inherit:
+  - template: argocd
+
+- name: jellyfin
+  namespace: media
+  inherit:
+  - template: argocd

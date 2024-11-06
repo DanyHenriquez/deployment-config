@@ -1,0 +1,29 @@
+image:
+  repository: ghcr.io/hotio/radarr
+
+containerPort: 7878
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: "radarr.local"
+    paths:
+    - path: "/"
+      pathType: "Prefix"
+
+volumes:
+- name: radarr-config-volume
+  persistentVolumeClaim:
+    claimName: radarr-config-pvc
+
+- name: data-volume
+  persistentVolumeClaim:
+    claimName: data-pvc
+
+volumeMounts:
+- name: radarr-config-volume
+  mountPath: /config
+
+- name: data-volume
+  mountPath: /data

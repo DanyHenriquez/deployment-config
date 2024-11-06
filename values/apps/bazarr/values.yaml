@@ -1,0 +1,30 @@
+image:
+  repository: ghcr.io/hotio/bazarr
+
+containerPort: 6767
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: "bazarr-one.local"
+    paths:
+    - path: "/"
+      pathType: "Prefix"
+
+
+volumes:
+- name: bazarr-config-volume
+  persistentVolumeClaim:
+    claimName: bazarr-config-pvc
+
+- name: data-volume
+  persistentVolumeClaim:
+    claimName: data-pvc
+
+volumeMounts:
+- name: bazarr-config-volume
+  mountPath: /config
+
+- name: data-volume
+  mountPath: /data

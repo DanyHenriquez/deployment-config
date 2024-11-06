@@ -1,0 +1,97 @@
+resources:
+  configurator:
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: media-app-configurator
+      namespace: '{{ .Release.Namespace }}'
+    spec:
+      template:
+        spec:
+          containers:
+          - name: configurator
+            image: curlimages/curl:latest
+            command: ["/bin/sh", "-c"]
+            args:
+            - |
+              extract_api_key() {
+                config_file=$1
+                grep -oE '<ApiKey>[^<]+' $config_file | sed 's/<ApiKey>//'
+              }
+
+              echo "Extracting API keys..."
+              sonarr_api_key=$(extract_api_key /mnt/sonarr/config.xml)
+              echo "Sonarr API Key extracted: ${sonarr_api_key}"
+              radarr_api_key=$(extract_api_key /mnt/radarr/config.xml)
+              echo "Radarr API Key extracted: ${radarr_api_key}"
+              lidarr_api_key=$(extract_api_key /mnt/lidarr/config.xml)
+              echo "Lidarr API Key extracted: ${lidarr_api_key}"
+              readarr_api_key=$(extract_api_key /mnt/readarr/config.xml)
+              echo "Readarr API Key extracted: ${readarr_api_key}"
+              prowlarr_api_key=$(extract_api_key /mnt/prowlarr/config.xml)
+              echo "Prowlarr API Key extracted: ${prowlarr_api_key}"
+
+              echo "Configuring Sonarr to use Prowlarr as an indexer..."
+              curl -s -o /dev/null -w "%{http_code}" -X POST "http://sonarr-one.media.svc.cluster.local:80/api/v1/indexer" \
+                -H "X-Api-Key: $sonarr_api_key" \
+                -H "Content-Type: application/json" \
+                -d "{\"name\":\"Prowlarr\",\"url\":\"http://prowlarr-one.media.svc.cluster.local:80\",\"apiKey\":\"$prowlarr_api_key\"}"
+              echo "Sonarr configured with Prowlarr."
+
+              echo "Configuring Radarr to use Prowlarr as an indexer..."
+              curl -s -o /dev/null -w "%{http_code}" -X POST "http://radarr-one.media.svc.cluster.local:80/api/v1/indexer" \
+                -H "X-Api-Key: $radarr_api_key" \
+                -H "Content-Type: application/json" \
+                -d "{\"name\":\"Prowlarr\",\"url\":\"http://prowlarr-one.media.svc.cluster.local:80\",\"apiKey\":\"$prowlarr_api_key\"}"
+              echo "Radarr configured with Prowlarr."
+
+              echo "Configuring Lidarr to use Prowlarr as an indexer..."
+              curl -s -o /dev/null -w "%{http_code}" -X POST "http://lidarr-one.media.svc.cluster.local:80/api/v1/indexer" \
+                -H "X-Api-Key: $lidarr_api_key" \
+                -H "Content-Type: application/json" \
+                -d "{\"name\":\"Prowlarr\",\"url\":\"http://prowlarr-one.media.svc.cluster.local:80\",\"apiKey\":\"$prowlarr_api_key\"}"
+              echo "Lidarr configured with Prowlarr."
+
+              echo "Configuring Bazarr with Sonarr API key..."
+              curl -s -o /dev/null -w "%{http_code}" -X POST "http://bazarr-one.media.svc.cluster.local:80/api/sonarr" \
+                -H "X-Api-Key: $sonarr_api_key" \
+                -H "Content-Type: application/json" \
+                -d "{\"url\":\"http://sonarr-one.media.svc.cluster.local:80\",\"apiKey\":\"$sonarr_api_key\"}"
+              echo "Bazarr configured with Sonarr."
+
+              echo "Configuring Bazarr with Radarr API key..."
+              curl -s -o /dev/null -w "%{http_code}" -X POST "http://bazarr-one.media.svc.cluster.local:80/api/radarr" \
+                -H "X-Api-Key: $radarr_api_key" \
+                -H "Content-Type: application/json" \
+                -d "{\"url\":\"http://radarr-one.media.svc.cluster.local:80\",\"apiKey\":\"$radarr_api_key\"}"
+              echo "Bazarr configured with Radarr."
+
+              echo "Configuration complete."
+            volumeMounts:
+            - name: sonarr-config
+              mountPath: /mnt/sonarr
+            - name: radarr-config
+              mountPath: /mnt/radarr
+            - name: lidarr-config
+              mountPath: /mnt/lidarr
+            - name: readarr-config
+              mountPath: /mnt/readarr
+            - name: prowlarr-config
+              mountPath: /mnt/prowlarr
+          volumes:
+          - name: sonarr-config
+            persistentVolumeClaim:
+              claimName: sonarr-config-pvc
+          - name: radarr-config
+            persistentVolumeClaim:
+              claimName: radarr-config-pvc
+          - name: lidarr-config
+            persistentVolumeClaim:
+              claimName: lidarr-config-pvc
+          - name: readarr-config
+            persistentVolumeClaim:
+              claimName: readarr-config-pvc
+          - name: prowlarr-config
+            persistentVolumeClaim:
+              claimName: prowlarr-config-pvc
+          restartPolicy: OnFailure

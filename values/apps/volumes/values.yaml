@@ -1,0 +1,147 @@
+labels: {}
+annotations: {}
+
+resources:
+  media-pv:
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: media-pv
+      namespace: '{{ .Release.Namespace }}'
+      labels:
+        type: local
+    spec:
+      storageClassName: local-path
+      capacity:
+        storage: 600Gi
+      accessModes:
+      - ReadWriteMany
+      hostPath:
+        path: "/home/dany/Data"
+
+  # PersistentVolumeClaims for media app configurations
+  sonarr-config-pvc:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: sonarr-config-pvc
+      namespace: '{{ .Release.Namespace }}'
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 5Gi
+
+  radarr-config-pvc:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: radarr-config-pvc
+      namespace: '{{ .Release.Namespace }}'
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 5Gi
+
+  lidarr-config-pvc:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: lidarr-config-pvc
+      namespace: '{{ .Release.Namespace }}'
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 5Gi
+
+  readarr-config-pvc:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: readarr-config-pvc
+      namespace: '{{ .Release.Namespace }}'
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 5Gi
+
+  prowlarr-config-pvc:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: prowlarr-config-pvc
+      namespace: '{{ .Release.Namespace }}'
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 5Gi
+
+  bazarr-config-pvc:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: bazarr-config-pvc
+      namespace: '{{ .Release.Namespace }}'
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 5Gi
+
+  nzbget-config-pvc:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: nzbget-config-pvc
+      namespace: '{{ .Release.Namespace }}'
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 5Gi
+
+  qbittorrent-config-pvc:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: qbittorrent-config-pvc
+      namespace: '{{ .Release.Namespace }}'
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 5Gi
+
+  data-pvc:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: data-pvc
+      namespace: '{{ .Release.Namespace }}'
+    spec:
+      accessModes:
+      - ReadWriteMany
+      storageClassName: local-path
+      resources:
+        requests:
+          storage: 500Gi

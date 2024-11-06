@@ -1,0 +1,110 @@
+dex:
+  enabled: false
+notifications:
+  enabled: false
+
+configs:
+  cmp:
+    create: true
+    plugins:
+      helmfile-plugin:
+        generate:
+          command: [sh, -c]
+          args: ["helmfile template --quiet -e prd"]
+        discover:
+          fileName: "helmfile.yaml"
+
+repoServer:
+  env:
+    - name: HELM_PLUGINS
+      value: /custom-tools/plugins
+    - name: PATH
+      value: /custom-tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+  volumes:
+    - configMap:
+        name: argocd-cmp-cm
+      name: argocd-cmp-cm
+    - emptyDir: {}
+      name: helm-home
+    - emptyDir: {}
+      name: cmp-tmp
+    - name: custom-tools
+      emptyDir: {}
+
+  initContainers:
+    - name: download-tools
+      image: alpine:latest
+      command: [sh, -c]
+      args:
+        - |
+          wget https://github.com/helmfile/vals/releases/download/v0.26.0/vals_0.26.0_linux_amd64.tar.gz -O - | tar xz -C /custom-tools
+          wget https://github.com/jkroepke/helm-secrets/releases/download/v4.5.1/helm-secrets.tar.gz -O - | tar xz -C /custom-tools
+      volumeMounts:
+        - mountPath: /custom-tools
+          name: custom-tools
+
+  volumeMounts:
+    - mountPath: /custom-tools
+      name: custom-tools
+
+  extraContainers:
+    - name: helmfile-plugin
+      command: [/var/run/argocd/argocd-cmp-server]
+      image: ghcr.io/helmfile/helmfile:v0.157.0
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "125m"
+        limits:
+          memory: "256Mi"
+          cpu: "250m"
+      env:
+        - name: HELM_CONFIG_HOME
+          value: /helm/.config/helm
+        - name: HELM_CACHE_HOME
+          value: /helm/.cache/helm
+        - name: HELMFILE_CACHE_HOME
+          value: /helm/.cache/helmfile
+        - name: XDG_CACHE_HOME
+          value: /helm/.cache
+        - name: HELMFILE_TEMPDIR
+          value: /tmp
+      volumeMounts:
+        - mountPath: /var/run/argocd
+          name: var-files
+        - mountPath: /home/argocd/cmp-server/plugins
+          name: plugins
+        - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+          subPath: helmfile-plugin.yaml
+          name: argocd-cmp-cm
+        - mountPath: /helm
+          name: helm-home
+        - mountPath: /tmp
+          name: cmp-tmp
+
+extraObjects:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: deployment-applications-secret
+      namespace: argocd
+      labels:
+        argocd.argoproj.io/secret-type: repository
+    stringData:
+      url: https://github.com/DanyHenriquez/deployment-config.git
+      password: "{{ .Values.git.token }}"
+
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: deployment-applications-vales-secret
+      namespace: argocd
+      labels:
+        argocd.argoproj.io/secret-type: repository
+    stringData:
+      url: https://github.com/DanyHenriquez/deployment-config-values.git
+      password: "{{ .Values.git.token }}"

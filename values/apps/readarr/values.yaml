@@ -1,0 +1,29 @@
+image:
+  repository: ghcr.io/hotio/readarr
+
+containerPort: 8787
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: "readarr-one.local"
+    paths:
+    - path: "/"
+      pathType: "Prefix"
+
+volumes:
+- name: readarr-config-volume
+  persistentVolumeClaim:
+    claimName: readarr-config-pvc
+
+- name: data-volume
+  persistentVolumeClaim:
+    claimName: data-pvc
+
+volumeMounts:
+- name: readarr-config-volume
+  mountPath: /config
+
+- name: data-volume
+  mountPath: /data

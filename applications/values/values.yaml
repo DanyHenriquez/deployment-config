@@ -1,0 +1,25 @@
+argocd:
+  namespace: argocd
+
+project: default
+destination:
+  server: https://kubernetes.default.svc
+  namespace: media
+syncPolicy:
+  automated:
+    prune: true
+    selfHeal: true
+  syncOptions:
+  - CreateNamespace=true
+
+helm:
+  repoURL: ghcr.io/lab42/charts
+  chart: one
+  targetRevision: 0.1.2
+  valueFiles:
+  - $values/values/global/values.yaml
+  - $values/values/apps/{{ .Release.Name }}/values.yaml
+
+values:
+  repoURL: https://github.com/DanyHenriquez/deployment-config.git
+  targetRevision: main

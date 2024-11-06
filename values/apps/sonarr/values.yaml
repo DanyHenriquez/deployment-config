@@ -1,0 +1,30 @@
+image:
+  repository: ghcr.io/hotio/sonarr
+
+containerPort: 8989
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: "sonarr.local"
+    paths:
+    - path: "/"
+      pathType: "Prefix"
+
+
+volumes:
+- name: sonarr-config-volume
+  persistentVolumeClaim:
+    claimName: sonarr-config-pvc
+
+- name: data-volume
+  persistentVolumeClaim:
+    claimName: data-pvc
+
+volumeMounts:
+- name: sonarr-config-volume
+  mountPath: /config
+
+- name: data-volume
+  mountPath: /data

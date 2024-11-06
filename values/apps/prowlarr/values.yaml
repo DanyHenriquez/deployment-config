@@ -1,0 +1,29 @@
+image:
+  repository: ghcr.io/hotio/prowlarr
+
+containerPort: 9696
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: "prowlarr.local"
+    paths:
+    - path: "/"
+      pathType: "Prefix"
+
+volumes:
+- name: prowlarr-config-volume
+  persistentVolumeClaim:
+    claimName: prowlarr-config-pvc
+
+- name: data-volume
+  persistentVolumeClaim:
+    claimName: data-pvc
+
+volumeMounts:
+- name: prowlarr-config-volume
+  mountPath: /config
+
+- name: data-volume
+  mountPath: /data
