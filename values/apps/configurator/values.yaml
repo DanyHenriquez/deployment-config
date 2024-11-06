@@ -9,123 +9,123 @@ resources:
       template:
         spec:
           containers:
-          - name: configurator
-            image: curlimages/curl:latest
-            command: ["/bin/sh", "-c"]
-            env:
-            - name: SONARR_URL
-              value: "http://sonarr-one.media.svc.cluster.local:80"
-            - name: RADARR_URL
-              value: "http://radarr-one.media.svc.cluster.local:80"
-            - name: LIDARR_URL
-              value: "http://lidarr-one.media.svc.cluster.local:80"
-            - name: PROWLARR_URL
-              value: "http://prowlarr-one.media.svc.cluster.local:80"
-            - name: BAZARR_URL
-              value: "http://bazarr-one.media.svc.cluster.local:80"
-            args:
-            - |
-              extract_api_key() {
-                config_file=$1
-                grep -oE '<ApiKey>[^<]+' "$config_file" | sed 's/<ApiKey>//'
-              }
+            - name: configurator
+              image: curlimages/curl:latest
+              command: ["/bin/sh", "-c"]
+              env:
+                - name: SONARR_URL
+                  value: "http://sonarr-one.media.svc.cluster.local:80"
+                - name: RADARR_URL
+                  value: "http://radarr-one.media.svc.cluster.local:80"
+                - name: LIDARR_URL
+                  value: "http://lidarr-one.media.svc.cluster.local:80"
+                - name: PROWLARR_URL
+                  value: "http://prowlarr-one.media.svc.cluster.local:80"
+                - name: BAZARR_URL
+                  value: "http://bazarr-one.media.svc.cluster.local:80"
+              args:
+                - |
+                  extract_api_key() {
+                    config_file=$1
+                    grep -oE '<ApiKey>[^<]+' "$config_file" | sed 's/<ApiKey>//'
+                  }
 
-              wait_for_config() {
-                config_file=$1
-                while [ ! -f "$config_file" ]; do
-                  echo "Waiting for $config_file to be ready..."
-                  sleep 5
-                done
-              }
+                  wait_for_config() {
+                    config_file=$1
+                    while [ ! -f "$config_file" ]; do
+                      echo "Waiting for $config_file to be ready..."
+                      sleep 5
+                    done
+                  }
 
-              retry_curl() {
-                url=$1
-                data=$2
-                api_key=$3
-                retries=5
-                until [ $retries -le 0 ]; do
-                  response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$url" \
-                    -H "X-Api-Key: $api_key" \
-                    -H "Content-Type: application/json" \
-                    -d "$data")
-                  if [ "$response" -eq 201 ]; then
-                    echo "Success: $url"
-                    break
-                  else
-                    echo "Failed to connect ($response). Retrying in 5 seconds..."
-                    retries=$((retries - 1))
-                    sleep 5
-                  fi
-                done
-              }
+                  retry_curl() {
+                    url=$1
+                    data=$2
+                    api_key=$3
+                    retries=5
+                    until [ $retries -le 0 ]; do
+                      response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$url" \
+                        -H "X-Api-Key: $api_key" \
+                        -H "Content-Type: application/json" \
+                        -d "$data")
+                      if [ "$response" -eq 201 ]; then
+                        echo "Success: $url"
+                        break
+                      else
+                        echo "Failed to connect ($response). Retrying in 5 seconds..."
+                        retries=$((retries - 1))
+                        sleep 5
+                      fi
+                    done
+                  }
 
-              # Wait for config files to be ready
-              wait_for_config /mnt/sonarr/config.xml
-              wait_for_config /mnt/radarr/config.xml
-              wait_for_config /mnt/lidarr/config.xml
-              wait_for_config /mnt/readarr/config.xml
-              wait_for_config /mnt/prowlarr/config.xml
+                  # Wait for config files to be ready
+                  wait_for_config /mnt/sonarr/config.xml
+                  wait_for_config /mnt/radarr/config.xml
+                  wait_for_config /mnt/lidarr/config.xml
+                  wait_for_config /mnt/readarr/config.xml
+                  wait_for_config /mnt/prowlarr/config.xml
 
-              # Extract API keys
-              echo "Extracting API keys..."
-              sonarr_api_key=$(extract_api_key /mnt/sonarr/config.xml)
-              radarr_api_key=$(extract_api_key /mnt/radarr/config.xml)
-              lidarr_api_key=$(extract_api_key /mnt/lidarr/config.xml)
-              readarr_api_key=$(extract_api_key /mnt/readarr/config.xml)
-              prowlarr_api_key=$(extract_api_key /mnt/prowlarr/config.xml)
+                  # Extract API keys
+                  echo "Extracting API keys..."
+                  sonarr_api_key=$(extract_api_key /mnt/sonarr/config.xml)
+                  radarr_api_key=$(extract_api_key /mnt/radarr/config.xml)
+                  lidarr_api_key=$(extract_api_key /mnt/lidarr/config.xml)
+                  readarr_api_key=$(extract_api_key /mnt/readarr/config.xml)
+                  prowlarr_api_key=$(extract_api_key /mnt/prowlarr/config.xml)
 
-              # Configure integrations with correct endpoints and data formats
-              echo "Configuring Sonarr to use Prowlarr as an indexer..."
-              retry_curl "$SONARR_URL/api/v3/indexer" \
-                "{\"name\":\"Prowlarr\",\"implementation\":\"Prowlarr\",\"configContract\":\"ProwlarrSettings\",\"fields\":[{\"name\":\"baseUrl\",\"value\":\"$PROWLARR_URL\"},{\"name\":\"apiKey\",\"value\":\"$prowlarr_api_key\"}]}" \
-                "$sonarr_api_key"
+                  # Configure integrations with correct endpoints and data formats
+                  echo "Configuring Sonarr to use Prowlarr as an indexer..."
+                  retry_curl "$SONARR_URL/api/v3/indexer" \
+                    "{\"name\":\"Prowlarr\",\"implementation\":\"Prowlarr\",\"configContract\":\"ProwlarrSettings\",\"fields\":[{\"name\":\"baseUrl\",\"value\":\"$PROWLARR_URL\"},{\"name\":\"apiKey\",\"value\":\"$prowlarr_api_key\"}]}" \
+                    "$sonarr_api_key"
 
-              echo "Configuring Radarr to use Prowlarr as an indexer..."
-              retry_curl "$RADARR_URL/api/v3/indexer" \
-                "{\"name\":\"Prowlarr\",\"implementation\":\"Prowlarr\",\"configContract\":\"ProwlarrSettings\",\"fields\":[{\"name\":\"baseUrl\",\"value\":\"$PROWLARR_URL\"},{\"name\":\"apiKey\",\"value\":\"$prowlarr_api_key\"}]}" \
-                "$radarr_api_key"
+                  echo "Configuring Radarr to use Prowlarr as an indexer..."
+                  retry_curl "$RADARR_URL/api/v3/indexer" \
+                    "{\"name\":\"Prowlarr\",\"implementation\":\"Prowlarr\",\"configContract\":\"ProwlarrSettings\",\"fields\":[{\"name\":\"baseUrl\",\"value\":\"$PROWLARR_URL\"},{\"name\":\"apiKey\",\"value\":\"$prowlarr_api_key\"}]}" \
+                    "$radarr_api_key"
 
-              echo "Configuring Lidarr to use Prowlarr as an indexer..."
-              retry_curl "$LIDARR_URL/api/v1/indexer" \
-                "{\"name\":\"Prowlarr\",\"implementation\":\"Prowlarr\",\"configContract\":\"ProwlarrSettings\",\"fields\":[{\"name\":\"baseUrl\",\"value\":\"$PROWLARR_URL\"},{\"name\":\"apiKey\",\"value\":\"$prowlarr_api_key\"}]}" \
-                "$lidarr_api_key"
+                  echo "Configuring Lidarr to use Prowlarr as an indexer..."
+                  retry_curl "$LIDARR_URL/api/v1/indexer" \
+                    "{\"name\":\"Prowlarr\",\"implementation\":\"Prowlarr\",\"configContract\":\"ProwlarrSettings\",\"fields\":[{\"name\":\"baseUrl\",\"value\":\"$PROWLARR_URL\"},{\"name\":\"apiKey\",\"value\":\"$prowlarr_api_key\"}]}" \
+                    "$lidarr_api_key"
 
-              echo "Configuring Bazarr with Sonarr API key..."
-              retry_curl "$BAZARR_URL/api/sonarr" \
-                "{\"url\":\"$SONARR_URL\",\"apiKey\":\"$sonarr_api_key\"}" \
-                "$sonarr_api_key"
+                  echo "Configuring Bazarr with Sonarr API key..."
+                  retry_curl "$BAZARR_URL/api/sonarr" \
+                    "{\"url\":\"$SONARR_URL\",\"apiKey\":\"$sonarr_api_key\"}" \
+                    "$sonarr_api_key"
 
-              echo "Configuring Bazarr with Radarr API key..."
-              retry_curl "$BAZARR_URL/api/radarr" \
-                "{\"url\":\"$RADARR_URL\",\"apiKey\":\"$radarr_api_key\"}" \
-                "$radarr_api_key"
+                  echo "Configuring Bazarr with Radarr API key..."
+                  retry_curl "$BAZARR_URL/api/radarr" \
+                    "{\"url\":\"$RADARR_URL\",\"apiKey\":\"$radarr_api_key\"}" \
+                    "$radarr_api_key"
 
-              echo "Configuration complete."
-            volumeMounts:
-            - name: sonarr-config
-              mountPath: /mnt/sonarr
-            - name: radarr-config
-              mountPath: /mnt/radarr
-            - name: lidarr-config
-              mountPath: /mnt/lidarr
-            - name: readarr-config
-              mountPath: /mnt/readarr
-            - name: prowlarr-config
-              mountPath: /mnt/prowlarr
+                  echo "Configuration complete."
+              volumeMounts:
+                - name: sonarr-config
+                  mountPath: /mnt/sonarr
+                - name: radarr-config
+                  mountPath: /mnt/radarr
+                - name: lidarr-config
+                  mountPath: /mnt/lidarr
+                - name: readarr-config
+                  mountPath: /mnt/readarr
+                - name: prowlarr-config
+                  mountPath: /mnt/prowlarr
           volumes:
-          - name: sonarr-config
-            persistentVolumeClaim:
-              claimName: sonarr-config-pvc
-          - name: radarr-config
-            persistentVolumeClaim:
-              claimName: radarr-config-pvc
-          - name: lidarr-config
-            persistentVolumeClaim:
-              claimName: lidarr-config-pvc
-          - name: readarr-config
-            persistentVolumeClaim:
-              claimName: readarr-config-pvc
-          - name: prowlarr-config
-            persistentVolumeClaim:
-              claimName: prowlarr-config-pvc
+            - name: sonarr-config
+              persistentVolumeClaim:
+                claimName: sonarr-config-pvc
+            - name: radarr-config
+              persistentVolumeClaim:
+                claimName: radarr-config-pvc
+            - name: lidarr-config
+              persistentVolumeClaim:
+                claimName: lidarr-config-pvc
+            - name: readarr-config
+              persistentVolumeClaim:
+                claimName: readarr-config-pvc
+            - name: prowlarr-config
+              persistentVolumeClaim:
+                claimName: prowlarr-config-pvc
           restartPolicy: OnFailure
