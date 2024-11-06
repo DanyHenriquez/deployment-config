@@ -10,7 +10,7 @@ configs:
       helmfile-plugin:
         generate:
           command: [sh, -c]
-          args: ["helmfile template --quiet -e prd"]
+          args: ["helmfile template --quiet"]
         discover:
           fileName: "helmfile.yaml"
 
