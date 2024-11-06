@@ -1,0 +1,15 @@
+fullnameOverride: ingress-nginx
+
+destination:
+  namespace: ingress-nginx
+
+helm:
+  repoURL: https://kubernetes.github.io/ingress-nginx
+  chart: ingress-nginx
+  targetRevision: 4.11.3
+  valueFiles:
+  - $values/values/apps/{{ .Release.Name }}/values.yaml
+
+values:
+  repoURL: https://github.com/DanyHenriquez/deployment-config.git
+  targetRevision: main
