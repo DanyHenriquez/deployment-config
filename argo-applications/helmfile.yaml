@@ -46,6 +46,11 @@ releases:
   inherit:
   - template: argocd
 
+- name: flaresolverr
+  namespace: media
+  inherit:
+  - template: argocd
+
 - name: bazarr
   namespace: media
   inherit:

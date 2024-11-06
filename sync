@@ -1,0 +1,97 @@
+Request URL:
+http://localhost:9696/api/v1/applications?
+Request Method:
+POST
+
+
+{
+    "syncLevel": "fullSync",
+    "enable": true,
+    "fields": [
+        {
+            "name": "prowlarrUrl",
+            "value": "http://prowlarr-one.media.svc.cluster.local:80"
+        },
+        {
+            "name": "baseUrl",
+            "value": "http://lidarr-one.media.svc.cluster.local:80"
+        },
+        {
+            "name": "apiKey",
+            "value": "e1786d0ee6c0480e8a9b59369367afa5"
+        },
+        {
+            "name": "syncCategories",
+            "value": [
+                3000,
+                3010,
+                3030,
+                3040,
+                3050,
+                3060
+            ]
+        },
+        {
+            "name": "syncRejectBlocklistedTorrentHashesWhileGrabbing",
+            "value": false
+        }
+    ],
+    "implementationName": "Lidarr",
+    "implementation": "Lidarr",
+    "configContract": "LidarrSettings",
+    "infoLink": "https://wiki.servarr.com/prowlarr/supported#lidarr",
+    "tags": [],
+    "name": "Lidarr"
+}
+
+{
+    "syncLevel": "fullSync",
+    "enable": true,
+    "fields": [
+        {
+            "name": "prowlarrUrl",
+            "value": "http://prowlarr-one.media.svc.cluster.local:80"
+        },
+        {
+            "name": "baseUrl",
+            "value": "http://sonarr-one.media.svc.cluster.local:80"
+        },
+        {
+            "name": "apiKey",
+            "value": "a1097d109fb540c3a34475280ce001e4"
+        },
+        {
+            "name": "syncCategories",
+            "value": [
+                5000,
+                5010,
+                5020,
+                5030,
+                5040,
+                5045,
+                5050,
+                5090
+            ]
+        },
+        {
+            "name": "animeSyncCategories",
+            "value": [
+                5070
+            ]
+        },
+        {
+            "name": "syncAnimeStandardFormatSearch",
+            "value": true
+        },
+        {
+            "name": "syncRejectBlocklistedTorrentHashesWhileGrabbing",
+            "value": false
+        }
+    ],
+    "implementationName": "Sonarr",
+    "implementation": "Sonarr",
+    "configContract": "SonarrSettings",
+    "infoLink": "https://wiki.servarr.com/prowlarr/supported#sonarr",
+    "tags": [],
+    "name": "Sonarr"
+}
