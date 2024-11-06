@@ -4,4 +4,4 @@ helm:
   chart: raw
   targetRevision: 0.2.1
   valueFiles:
-  - $values/apps/volumes/values.yaml
+  - $values/values/apps/volumes/values.yaml

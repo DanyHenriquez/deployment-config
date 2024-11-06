@@ -4,4 +4,4 @@ helm:
   chart: raw
   targetRevision: 0.2.1
   valueFiles:
-  - $values/apps/configurator/values.yaml
+  - $values/values/apps/configurator/values.yaml
