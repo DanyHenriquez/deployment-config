@@ -20,6 +20,11 @@ templates:
 # Define the actual releases using the template
 releases:
 
+- name: nginx-ingress
+  namespace: nginx-ingress
+  inherit:
+  - template: argocd
+
 - name: volumes
   namespace: media
   inherit:

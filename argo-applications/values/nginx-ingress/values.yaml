@@ -1,7 +1,7 @@
-fullnameOverride: ingress-nginx
+fullnameOverride: nginx-ingress
 
 destination:
-  namespace: ingress-nginx
+  namespace: nginx-ingress
 
 helm:
   repoURL: https://kubernetes.github.io/ingress-nginx
