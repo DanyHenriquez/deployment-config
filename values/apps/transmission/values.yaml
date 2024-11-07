@@ -1,0 +1,23 @@
+image:
+  repository: lscr.io/linuxserver/transmission
+
+containerPort: 9091
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+  - host: "transmission.local"
+    paths:
+    - path: "/"
+      pathType: "Prefix"
+
+
+volumes:
+- name: data-volume
+  persistentVolumeClaim:
+    claimName: data-pvc
+
+volumeMounts:
+- name: data-volume
+  mountPath: /data
