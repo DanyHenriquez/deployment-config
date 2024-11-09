@@ -7,7 +7,7 @@ ingress:
   enabled: true
   className: nginx
   hosts:
-  - host: "bazarr-one.local"
+  - host: "bazarr.local"
     paths:
     - path: "/"
       pathType: "Prefix"

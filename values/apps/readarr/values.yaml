@@ -7,7 +7,7 @@ ingress:
   enabled: true
   className: nginx
   hosts:
-  - host: "readarr-one.local"
+  - host: "readarr.local"
     paths:
     - path: "/"
       pathType: "Prefix"
